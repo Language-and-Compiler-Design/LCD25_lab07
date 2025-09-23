@@ -27,16 +27,43 @@ dune exec calcc
 
 This will start the program that evaluates expressions written in the defined expression language.
 
-### Structure
+The program asks for an expression to compile and outputs some LLVM code. For instance, if the expression is `1+2+3`, the output will be
 
-src/ – main executable and core modules 
+```LLVM
+@.str = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+define i32 @main() #0 {
+%1 = add nsw i32 1, 2
+%2 = add nsw i32 %1, 3
+  %3 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %2)
+  ret i32 0
+}
+declare i32 @printf(ptr noundef, ...) #1
+```
 
-### Next Steps
+This output should be placed in a file with the extension `ll` and compiled using `clang`
 
-Familiarise yourself with the code structure.
+```bash
+clang -o a a.ll
+```
 
-Try evaluating some example expressions.
+The result is the executable `a` which can be run from the console 
 
-Implement the extension points in the code
+```bash
+./a
+```
 
-Be ready to extend the interpreter in future labs (e.g. adding compilation to LLVM).
+to obtain the result `6`
+
+### Extension points
+
+- Inspect the code of the compiler to understand how the instructions are generated.
+
+- Research LLVM instructions by reading the documentation and by compiling sample C programs to LLVM. The command to do so is
+
+```bash
+clang -S -emit-llvm -c a.c -o a.ll
+```
+
+the result will be a file called `a.ll`
+
+- Extend the compiler to implement new instructions.
