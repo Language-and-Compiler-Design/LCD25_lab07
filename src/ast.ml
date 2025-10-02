@@ -8,6 +8,10 @@ type ast =
   | Mul of ast * ast
   | Div of ast * ast
   | Neg of ast
+  | Bool of bool
+  | And of ast * ast
+  | Or of ast * ast
+  | Eq of ast * ast
 
 let paren = fun p q s -> if p > q then "("^s^")" else s
 
@@ -20,4 +24,5 @@ let rec unparse_ast p e =
   | Mul (e1,e2) -> paren p 30 (unparse_ast 20 e1 ^ " * " ^ unparse_ast 20 e2)
   | Div (e1,e2) -> paren p 20 (unparse_ast 20 e1 ^ " / " ^ unparse_ast 21 e2)
   | Neg e1 -> paren p 30 ("-"^unparse_ast 31 e1)
+  | _ -> assert false
 

@@ -20,9 +20,10 @@ let () =
     | s ->
         (try
            let e = parse_string s in 
-           print_endline (Ast.unparse_ast 0 e);
+           (* let _ = Typing.typecheck e in *)
+           (* print_endline (Ast.unparse_ast 0 e); *)
            let v = Eval.eval e in
-           Printf.printf "= %d\n%!" v
+           print_endline ("= "^(Eval.unparse_result v))
          with Failure msg ->
            Printf.eprintf "Error: %s\n%!" msg);
         loop ()

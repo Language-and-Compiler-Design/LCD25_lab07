@@ -12,5 +12,10 @@ rule read = parse
   | '/'                      { DIV }
   | '('                      { LPAREN }
   | ')'                      { RPAREN }
+  | "true"                   { TRUE }
+  | "false"                  { FALSE }
+  | "&&"                     { AND }
+  | "||"                     { OR }
+  | '='                      { EQ }
   | eof                      { EOF }
   | _ as c                   { raise (Lexing_error (Printf.sprintf "Unexpected char: %c" c)) }

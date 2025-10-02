@@ -9,7 +9,7 @@ let prologue =
 let epilogue = 
    ["  ret i32 0";
     "}";
-    "declare i32 @printf(ptr noundef, ...) #1"]
+    "declare i32 @printf(i8* noundef, ...) #1"]
 
 let parse_lexbuf lb =
   try Parser.main Lexer.read lb with
