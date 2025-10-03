@@ -30,6 +30,17 @@ let rec compile_llvm e =
     let r2,b2,bs2 = compile_llvm e2 in
     let ret = new_reg() in 
     (Register ret, b1@b2@[Addi32 (ret,r1,r2)], bs1@bs2)
+  | And (e1,e2) -> 
+    let r1,b1,bs1 = compile_llvm e1 in
+    let l1 = new_reg() in
+    let r2,b2,bs2 = compile_llvm e2 in
+    let l2 = new_reg() in
+    let ret = new_reg() in 
+    (Register ret, b1@b2@[]@[(l1,b1);(l2,b2)]
+
+
+    ], bs1@bs2)
+  
   | _ -> assert false (* Complete here this *)
 
 let emit_printf ret = 

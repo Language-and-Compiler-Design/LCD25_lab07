@@ -42,6 +42,6 @@ let rec eval e =
                    end *)
   | Or (e1,e2) -> bool_bool_binop (||) (eval e1) (eval e2)
   | Eq (e1,e2) -> a_a_bool_eq (eval e1) (eval e2)
-  (* | _ -> assert false *)
+  | _ -> assert false
 
 
