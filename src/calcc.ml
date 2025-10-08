@@ -42,8 +42,8 @@ let loop () =
           let e = parse_string s in 
           (* Print it out *)
           print_endline (Ast.unparse_ast 0 e);
-          let t = Typing.typecheck e in
-          begin match t with 
+          let e' = Typing.typecheck e in
+          begin match Typing.type_of e' with 
            | None m -> failwith ("Typing error: " ^ m)
            | _ -> (* Call the compiler and receive the instructions *)
                   let result = Llvm.compile e in

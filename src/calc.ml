@@ -21,7 +21,8 @@ let () =
         (try
            let e = parse_string s in 
            print_string (Ast.unparse_ast 100 e^" "); flush stdout;
-           let t = Typing.typecheck e in
+           let e' = Typing.typecheck e in
+           let t = Typing.type_of e' in
            begin match t with 
            | None m -> failwith ("Typing error: " ^ m)
            | _ -> let v = Eval.eval e in

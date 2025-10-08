@@ -11,13 +11,58 @@ Assuming that you have completed the previous labs, the following steps outline 
 
 1. **Implement Relational Operators**: Extend the language to include relational operators such as `<`, `<=`, `>`, `>=`, `==`, and `!=`. These operators should work with both integer and boolean values, returning a boolean result. These operations can dynamically check the type of the operands to appropriately handle both integer and boolean values.
 
-2. **Static Type System**: Implement a static type system that checks the types of expressions at compile time and labels the AST appropriately. 
+2. **Static Type System**: Implement a static type system that checks the types of expressions at compile time and labels the AST appropriately. Start with the given type checking function that was introduced in the lectures and is included in the `typing.ml` file. You will need to modify this function to annotate the AST with types.
 
 3. **LLVM Code Generation**: Extend the compiler to generate LLVM code for the relational operators. Do not generate short-circuit evaluation in the LLVM code yet; instead, generate code that evaluates both sides of the expression and then performs the comparison using the appropriate LLVM instructions for the types involved.
 
 4. **Implement Short-Circuit Interpreter**: Modify the interpreter to support short-circuit evaluation for boolean expressions. This means that in expressions like `A && B`, if `A` is false, `B` should not be evaluated, and similarly for `A || B`.
 
 5. **LLVM Code Generation for Short-Circuit Evaluation**: Finally, extend the compiler to generate LLVM code that implements short-circuit evaluation for boolean expressions. This will involve generating labelled basic blocks, conditional branches in the LLVM code, and phi nodes to join the result in the end. 
+
+### Hints
+
+Analyse the file `typing.ml` to understand how to implement the type system. You will need to define a new type `ast` in the type system module (file `typing.ml`) to represent the output of the type system and later modify the input of the compiler to accept this typed AST.
+
+```ocaml
+type ann = { ty: calc_type }
+
+type ast = 
+    Num of ann * int
+  | Bool of ann * bool
+  
+  | Add of ann * ast * ast
+  ...
+```
+
+By defining the type `ann` for annotations, separately, you can easily modify the AST to include more meta information later. Now you need to adapt the type checking helper functions to return this new typed AST. For example, the helper function that checks operations on integers should look like this:
+
+```ocaml
+let type_int_int_int_bin_op mk e1 e2 = 
+  match type_of e1, type_of e2 with
+  | IntT, IntT -> mk IntT e1 e2
+  | _ -> mk (None "Expecting Integer") e1 e2
+```
+
+By using the high order `mk` function to replace the general form of producing the expression back. You can create a new AST node with the correct type annotation. The `mk` function can be instantiated by functions like:
+
+```ocaml
+let mk_add t e1 e2 = Add (t,e1,e2) 
+let mk_sub t e1 e2 = Sub (t,e1,e2) 
+...
+```
+
+You will need to implement similar functions for all binary and unary operations.
+
+```ocaml
+let rec typecheck e =
+  match e with  
+  | Ast.Num n -> Num n
+  | Ast.Bool b -> Bool b
+  | Ast.Add (e1,e2) -> type_int_int_int_bin_op mk_add (typecheck e1) (typecheck e2)
+  | Ast.Sub (e1,e2) -> type_int_int_int_bin_op mk_sub (typecheck e1) (typecheck e2)
+  ...
+```
+
 
 ### Building the Project
 

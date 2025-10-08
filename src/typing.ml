@@ -1,46 +1,113 @@
 (* This file contains the type system for the calcb language *)
 
-open Ast
-
 type calc_type = 
   | IntT 
   | BoolT
   | None of string
+
+type ann = calc_type
+
+type ast = 
+    Num of int
+  | Bool of bool
+  
+  | Add of ann * ast * ast
+  | Sub of ann * ast * ast
+  | Mul of ann * ast * ast
+  | Div of ann * ast * ast
+  | Neg of ann * ast
+  
+  | Eq of ann * ast * ast
+  | Neq of ann * ast * ast
+  | Lt of ann * ast * ast
+  | Le of ann * ast * ast
+  | Gt of ann * ast * ast
+  | Ge of ann * ast * ast
+  
+  | And of ann * ast * ast
+  | Or of ann * ast * ast
+  | Not of ann * ast
+
+let type_of = function
+  | Num _ -> IntT
+  | Bool _ -> BoolT
+  
+  | Add (ann,_,_) -> ann
+  | Sub (ann,_,_) -> ann
+  | Mul (ann,_,_) -> ann
+  | Div (ann,_,_) -> ann
+  | Neg (ann,_) -> ann
+  
+  | Eq (ann,_,_) -> ann
+  | Neq (ann,_,_) -> ann
+  | Lt (ann,_,_) -> ann
+  | Le (ann,_,_) -> ann
+  | Gt (ann,_,_) -> ann
+  | Ge (ann,_,_) -> ann
+  
+  | And (ann,_,_) -> ann
+  | Or (ann,_,_) -> ann
+  | Not (ann,_) -> ann
+
+let mk_add t e1 e2 = Add (t,e1,e2) 
+let mk_sub t e1 e2 = Sub (t,e1,e2) 
+let mk_mul t e1 e2 = Mul (t,e1,e2) 
+let mk_div t e1 e2 = Div (t,e1,e2) 
+let mk_neg t e1 = Neg (t,e1)
+
+let mk_and t e1 e2 = And (t,e1,e2) 
+let mk_or t e1 e2 = Or (t,e1,e2) 
+let mk_not t e1 = Neg (t,e1)
+
+let mk_eq t e1 e2 = Eq (t,e1,e2)
+let mk_neq t e1 e2 = Neq (t,e1,e2)
+let mk_lt t e1 e2 = Lt (t,e1,e2)
+let mk_le t e1 e2 = Le (t,e1,e2)
+let mk_gt t e1 e2 = Gt (t,e1,e2)
+let mk_ge t e1 e2 = Ge (t,e1,e2)
 
 let unparse_type = function
   | IntT -> "int"
   | BoolT -> "boolean"
   | None m -> "typing error: "^m
 
-let type_int_int_int_bin_op t1 t2 = 
-  match t1, t2 with
-  | IntT, IntT -> IntT
-  | _ -> None "Expecting Integer"
+let type_int_int_int_bin_op mk e1 e2 = 
+  match type_of e1, type_of e2 with
+  | IntT, IntT -> mk IntT e1 e2
+  | _ -> mk (None "Expecting Integer") e1 e2
 
-let type_bool_bool_bool_bin_op t1 t2 = 
-  match t1, t2 with
-  | BoolT, BoolT -> BoolT
-  | _ -> None "Expecting Boolean"
+let type_int_int_bin_op mk e1 = 
+  match type_of e1 with
+  | IntT -> mk IntT e1
+  | _ -> mk (None "Expecting Integer") e1
 
-let type_int_int_bool_bin_op t1 t2 = 
-  match t1, t2 with
-  | IntT, IntT -> BoolT
-  | _ -> None "Expecting Integer"
+let type_bool_bool_bool_bin_op mk e1 e2 = 
+  match type_of e1, type_of e2 with
+  | BoolT, BoolT -> mk BoolT e1 e2
+  | _ -> mk (None "Expecting Boolean") e1 e2
 
-let type_a_a_bool_eqop t1 t2 = if t1 = t2 then BoolT else None "Expecting equal types"
+let type_int_int_bool_bin_op mk e1 e2 = 
+  match type_of e1, type_of e2 with
+  | IntT, IntT -> mk BoolT e1 e2
+  | _ -> mk (None "Expecting Integer") e1 e2
+
+let type_a_a_bool_eqop mk e1 e2 = 
+  if type_of e1 = type_of e2 
+    then mk BoolT e1 e2 
+    else mk (None "Expecting equal types") e1 e2
 
 let rec typecheck e =
   match e with  
-  | Num _ -> IntT
-  | Bool _ -> BoolT
-  | Add (e1,e2) -> type_int_int_int_bin_op  (typecheck e1) (typecheck e2)
-  | Sub (e1,e2) -> type_int_int_int_bin_op  (typecheck e1) (typecheck e2)
-  | Mul (e1,e2) -> type_int_int_int_bin_op  (typecheck e1) (typecheck e2)
-  | Div (e1,e2) -> type_int_int_int_bin_op  (typecheck e1) (typecheck e2)
-  | Neg e1 ->  type_int_int_int_bin_op (IntT) (typecheck e1)
-  | And (e1,e2) -> type_bool_bool_bool_bin_op  (typecheck e1) (typecheck e2)
-  | Or (e1,e2) -> type_bool_bool_bool_bin_op  (typecheck e1) (typecheck e2)
-  | Eq (e1,e2) -> type_a_a_bool_eqop (typecheck e1) (typecheck e2)
+  | Ast.Num n -> Num n
+  | Ast.Bool b -> Bool b
+  | Ast.Add (e1,e2) -> type_int_int_int_bin_op mk_add (typecheck e1) (typecheck e2)
+  | Ast.Sub (e1,e2) -> type_int_int_int_bin_op mk_sub (typecheck e1) (typecheck e2)
+  | Ast.Mul (e1,e2) -> type_int_int_int_bin_op mk_mul (typecheck e1) (typecheck e2)
+  | Ast.Div (e1,e2) -> type_int_int_int_bin_op mk_div (typecheck e1) (typecheck e2)
+  | Ast.Neg e1 ->  type_int_int_bin_op mk_neg (typecheck e1)
+  | Ast.And (e1,e2) -> type_bool_bool_bool_bin_op mk_and (typecheck e1) (typecheck e2)
+  | Ast.Or (e1,e2) -> type_bool_bool_bool_bin_op mk_or (typecheck e1) (typecheck e2)
+  | Ast.Eq (e1,e2) -> type_a_a_bool_eqop mk_eq (typecheck e1) (typecheck e2)
   | _ -> failwith "Not yet implemented..."
 
 
