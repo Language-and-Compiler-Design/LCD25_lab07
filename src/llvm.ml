@@ -17,7 +17,7 @@ let unparse_result = function
 
 let unparse_llvm_i = function 
   | Addi32 (r,p1,p2) -> 
-      unparse_register r^" = add nsw i32 "^unparse_result p1^", "^unparse_result p2
+      "  "^unparse_register r^" = add nsw i32 "^unparse_result p1^", "^unparse_result p2
 
 let count = ref 0
 let new_reg = fun () -> count := !count + 1; !count
@@ -30,18 +30,7 @@ let rec compile_llvm e =
     let r2,b2,bs2 = compile_llvm e2 in
     let ret = new_reg() in 
     (Register ret, b1@b2@[Addi32 (ret,r1,r2)], bs1@bs2)
-  | And (e1,e2) -> 
-    let r1,b1,bs1 = compile_llvm e1 in
-    let l1 = new_reg() in
-    let r2,b2,bs2 = compile_llvm e2 in
-    let l2 = new_reg() in
-    let ret = new_reg() in 
-    (Register ret, b1@b2@[]@[(l1,b1);(l2,b2)]
-
-
-    ], bs1@bs2)
-  
-  | _ -> assert false (* Complete here this *)
+  | _ -> failwith "Not yet implemented"
 
 let emit_printf ret = 
     "  "^unparse_register (new_reg())^" = call i32 (i8*, ...) @printf(i8* noundef @.str, i32 noundef "^unparse_result ret^")"

@@ -42,10 +42,14 @@ let loop () =
           let e = parse_string s in 
           (* Print it out *)
           print_endline (Ast.unparse_ast 0 e);
-          (* Call the compiler and receive the instructions *)
-          let result = Llvm.compile e in
-          (* Print the resulting LLVM program *)
-          print_llvm result 
+          let t = Typing.typecheck e in
+          begin match t with 
+           | None m -> failwith ("Typing error: " ^ m)
+           | _ -> (* Call the compiler and receive the instructions *)
+                  let result = Llvm.compile e in
+                  (* Print the resulting LLVM program *)
+                  print_llvm result 
+           end
         with Failure msg ->
           Printf.eprintf "Error: %s\n%!" msg);
   | exception End_of_file -> print_endline "\nGoodbye!"

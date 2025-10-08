@@ -20,12 +20,12 @@ let () =
     | s ->
         (try
            let e = parse_string s in 
+           print_string (Ast.unparse_ast 100 e^" "); flush stdout;
            let t = Typing.typecheck e in
            begin match t with 
-           | None m -> failwith m
-           | _ -> print_endline (Ast.unparse_ast 0 e);
-                  let v = Eval.eval e in
-                  print_endline ("= "^(Eval.unparse_result v))
+           | None m -> failwith ("Typing error: " ^ m)
+           | _ -> let v = Eval.eval e in
+                  print_endline (" = "^(Eval.unparse_result v^ " : "^ Typing.unparse_type t))
            end
          with Failure msg ->
            Printf.eprintf "Error: %s\n%!" msg);
