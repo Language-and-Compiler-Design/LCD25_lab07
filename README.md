@@ -1,11 +1,23 @@
 # Language and Compiler Design - NOVA FCT 2025
 
-## Lab 3 – `CALCB` definitional interpreter and compiler
+## Lab 4 – `CALCB` type system and compiler with short-circuit evaluation
 
-This repository contains the starter code for **Lab 3** of the course **Language and Compiler Design**.  
-In this lab, you will extend the previous lab sessions' work on the `CALCB` language. You need to add boolean constants, logical operators, and comparison operators to the language. You will also implement a compiler that translates `CALCB` expressions into LLVM code.
+This repository contains the starter code for **Lab 4** of the course **Language and Compiler Design**.  
+In this lab, you will extend the previous lab sessions' work on the `CALCB` language to implement short-circuit evaluation of boolean expressions and relational operators. To be able to generate code that compares both integer and boolean values, you need to implement a static type system that correctly identifies the types of the values being compared. You can then implement a compiler that translates `CALCB` expressions into LLVM code correctly.
 
----
+### Action points
+
+Assuming that you have completed the previous labs, the following steps outline the tasks you need to accomplish in this lab:
+
+1. **Implement Relational Operators**: Extend the language to include relational operators such as `<`, `<=`, `>`, `>=`, `==`, and `!=`. These operators should work with both integer and boolean values, returning a boolean result. These operations can dynamically check the type of the operands to appropriately handle both integer and boolean values.
+
+2. **Static Type System**: Implement a static type system that checks the types of expressions at compile time and labels the AST appropriately. 
+
+3. **LLVM Code Generation**: Extend the compiler to generate LLVM code for the relational operators. Do not generate short-circuit evaluation in the LLVM code yet; instead, generate code that evaluates both sides of the expression and then performs the comparison using the appropriate LLVM instructions for the types involved.
+
+4. **Implement Short-Circuit Interpreter**: Modify the interpreter to support short-circuit evaluation for boolean expressions. This means that in expressions like `A && B`, if `A` is false, `B` should not be evaluated, and similarly for `A || B`.
+
+5. **LLVM Code Generation for Short-Circuit Evaluation**: Finally, extend the compiler to generate LLVM code that implements short-circuit evaluation for boolean expressions. This will involve generating labelled basic blocks, conditional branches in the LLVM code, and phi nodes to join the result in the end. 
 
 ### Building the Project
 
@@ -56,35 +68,7 @@ The result is the executable `a` which can be run from the console
 
 to obtain the result `6`
 
-### Extension points
-
-1. Add boolean constants (`true` and `false`) to the syntax of the `CALCB` language (lexer and parser).
-
-2. Add logical operators (`&&`, `||`, `not`) to the syntax of the `CALCB` language (lexer and parser). Pay special attention to operator precedence and associativity.
-
-3. Add comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`) to the syntax of the `CALCB` language (lexer and parser). Pay special attention to operator precedence and associativity.
-
-4. Extend the interpreter to evaluate boolean constants, logical operators, and comparison operators. Notice that now the result of evaluating and expression is no longer an integer but can also be a boolean. Use a sum type to represent the result of evaluation.
-
-```ocaml
-type result = 
-  | IntV of int
-  | BoolV of bool
-```
-
-  you will need to also add a function that converts a `result` to a string for printing.
-
-5. Modify the interpreter to account for boolean values and boolean operations.
-
-6. Test the unparser and interpreter with expressions that use boolean constants, logical operators, and comparison operators.
-
-7. Extend the compiler to generate LLVM code for boolean constants, logical operators, and comparison operators. 
-
-  - Boolean values can be represented as `i1` in LLVM (1 bit integer).
-  - Logical operations can be implemented using LLVM instructions such as `and`, `or`, and `xor`. Notice that we are not yet implementing short-circuit evaluation.
-  - Comparison operations can be implemented using LLVM instructions such as `icmp`.
-
-  Research LLVM instructions by reading the documentation and by compiling sample C programs to LLVM. The command to do so is
+To research LLVM instructions, you can read the documentation online and can compile sample C programs to LLVM. The command to do so is
 
   ```bash
   clang -S -emit-llvm -c a.c -o a.ll
