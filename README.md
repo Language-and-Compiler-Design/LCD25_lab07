@@ -21,6 +21,8 @@ Assuming that you have completed the previous labs, the following steps outline 
 
 ### Hints
 
+#### To implement the type system with an annotated AST
+
 Analyse the file `typing.ml` to understand how to implement the type system. You will need to define a new type `ast` in the type system module (file `typing.ml`) to represent the output of the type system and later modify the input of the compiler to accept this typed AST.
 
 ```ocaml
@@ -63,6 +65,45 @@ let rec typecheck e =
   ...
 ```
 
+#### To implement the short-circuit evaluation in the interpreter
+
+The code that you need to produce to implement a short-circuit and expression like `A && B` is as follows:
+
+```shell
+A:
+  %B = ...                             ; B is the register that holds the value of A
+   br i1 %B, label %C, label %E
+
+C:
+  %D = ...                             ; D is the register that holds the value of B
+  br label %G
+
+E:
+  %F = phi i1 [ false, %A ], [ %D, %C ]
+  ...
+```
+
+The labels `A` to `H` represent fresh temporaries that need to be generated in this sequence.  The same pattern will be valid to implement the `A || B` expression. 
+
+For conditional expressions with two branches, like `if A then B else C`, the code that you need to produce is as follows:
+
+
+```ocaml
+  %A = ...                             ; A is the register that holds the condition result
+   br i1 %A, label %B, label %E
+
+B:
+  %C = ...                             ; C is the register that holds the result of the then branch
+  br label %G
+
+E:
+  %F = ...                             ; F is the register that holds the result of the else branch
+  br label %G
+
+G:
+  %H = phi i1 [ %C, %B ], [ %F, %E ]
+  ...
+```
 
 ### Building the Project
 

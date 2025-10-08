@@ -2,15 +2,6 @@
 
 open Calc_lib
 
-let prologue = 
-  ["@.str = private unnamed_addr constant [4 x i8] c\"%d\\0A\\00\", align 1";
-   "define i32 @main() #0 {"]
-
-let epilogue = 
-   ["  ret i32 0";
-    "}";
-    "declare i32 @printf(i8* noundef, ...) #1"]
-
 let parse_lexbuf lb =
   try Parser.main Lexer.read lb with
   | Parsing.Parse_error ->
@@ -21,15 +12,6 @@ let parse_lexbuf lb =
 let parse_string s =
   Lexing.from_string s |> parse_lexbuf
 
-let print_llvm (ret,instructions,_) =
-    (* Print the prologue *)
-    List.iter print_endline prologue;
-    (* Print the instructions *)
-    List.iter (fun x -> x |> Llvm.unparse_llvm_i |> print_endline) instructions;
-    (* Print the instruction printing the result *)
-    print_endline (Llvm.emit_printf ret);
-    (* Print the epilogue *)
-    List.iter print_endline epilogue
 
 (* The main loop *)
 let loop () =
@@ -41,14 +23,16 @@ let loop () =
           (* Parse the string and return an AST *)
           let e = parse_string s in 
           (* Print it out *)
-          print_endline (Ast.unparse_ast 0 e);
+          print_string (Ast.unparse_ast 0 e^" : "); flush stdout;
           let e' = Typing.typecheck e in
-          begin match Typing.type_of e' with 
+          print_endline (Typing.unparse_type (Typing.type_of e'));
+          let t = Typing.type_of e' in
+          begin match t with 
            | None m -> failwith ("Typing error: " ^ m)
            | _ -> (* Call the compiler and receive the instructions *)
-                  let result = Llvm.compile e in
+                  let result = Llvm.compile e' in
                   (* Print the resulting LLVM program *)
-                  print_llvm result 
+                  Llvm.print_llvm result t
            end
         with Failure msg ->
           Printf.eprintf "Error: %s\n%!" msg);

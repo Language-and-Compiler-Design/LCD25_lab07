@@ -108,6 +108,6 @@ let rec typecheck e =
   | Ast.And (e1,e2) -> type_bool_bool_bool_bin_op mk_and (typecheck e1) (typecheck e2)
   | Ast.Or (e1,e2) -> type_bool_bool_bool_bin_op mk_or (typecheck e1) (typecheck e2)
   | Ast.Eq (e1,e2) -> type_a_a_bool_eqop mk_eq (typecheck e1) (typecheck e2)
-  | _ -> failwith "Not yet implemented..."
+  | _ -> failwith "Typing not yet implemented..."
 
 
