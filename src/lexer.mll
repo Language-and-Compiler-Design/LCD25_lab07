@@ -6,6 +6,17 @@
 rule read = parse
   | [' ' '\t' '\r' '\n']     { read lexbuf }       (* skip whitespace *)
   | ['0'-'9']+ as i          { INT (int_of_string i) }
+  | "true"                  { TRUE }
+  | "false"                 { FALSE }
+  | "&&"                    { AND }
+  | "||"                    { OR }
+  | "not"                   { NOT }
+  | "="                     { EQ }
+  | "!="                    { NEQ }
+  | "<"                     { LT }
+  | ">"                     { GT }
+  | "<="                    { LE }
+  | ">="                    { GE }
   | '+'                      { PLUS }
   | '-'                      { MINUS }
   | '*'                      { TIMES }
