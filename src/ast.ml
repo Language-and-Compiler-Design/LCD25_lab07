@@ -22,7 +22,6 @@ type ast =
   | Or of ast * ast
   | Not of ast
 
-
 let paren = fun p q s -> if p > q then "("^s^")" else s
 
 (* This function converts an AST back to a string representation of the expression *)
