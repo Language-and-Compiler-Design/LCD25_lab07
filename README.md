@@ -1,109 +1,26 @@
 # Language and Compiler Design - NOVA FCT 2025
 
-## Lab 4 – `CALCB` type system and compiler with short-circuit evaluation
+## Lab 5 – `CALCI`, a language with identifier declarations
 
-This repository contains the starter code for **Lab 4** of the course **Language and Compiler Design**.  
-In this lab, you will extend the previous lab sessions' work on the `CALCB` language to implement short-circuit evaluation of boolean expressions and relational operators. To be able to generate code that compares both integer and boolean values, you need to implement a static type system that correctly identifies the types of the values being compared. You can then implement a compiler that translates `CALCB` expressions into LLVM code correctly.
+This repository contains the starter code for **Lab 5** of the course **Language and Compiler Design**.  
+
+In this lab, you will extend the previous lab sessions' work on the compiler of `CALCB` language with short-circuit operations. Your job is to implement declarations of identifiers in the style of let expressions. You need to implement the interpreter, the type systems, and the compiler to LLVM. Use the provided environment module `env.ml` to manage the identifiers and their relations to values (interpreter), types (type checker), and LLVM results (compiler).
 
 ### Action points
 
 Assuming that you have completed the previous labs, the following steps outline the tasks you need to accomplish in this lab:
 
-1. **Implement Relational Operators**: Extend the language to include relational operators such as `<`, `<=`, `>`, `>=`, `==`, and `!=`. These operators should work with both integer and boolean values, returning a boolean result. These operations can dynamically check the type of the operands to appropriately handle both integer and boolean values.
+1. **Lexer**: Modify the lexer (`lexer.mll`) to recognize identifiers (sequences of letters) and the keywords `let` and `in`. You will also need to add reuse the token for the equality operator `=`. Take care to place the identifier rule at the end of the rules to avoid conflicts with keywords.
 
-2. **Static Type System**: Implement a static type system that checks the types of expressions at compile time and labels the AST appropriately. Start with the given type checking function that was introduced in the lectures and is included in the `typing.ml` file. You will need to modify this function to annotate the AST with types.
+2. **Parser**: Update the parser (`parser.mly`) to handle let expressions of the form `let ID = expr in expr`. Ensure that the parser correctly constructs the AST for these expressions. Let expressions have the lowest precedence and are right associative, which means that they should be placed at the top level of the precedence hierarchy.
 
-3. **LLVM Code Generation**: Extend the compiler to generate LLVM code for the relational operators. Do not generate short-circuit evaluation in the LLVM code yet; instead, generate code that evaluates both sides of the expression and then performs the comparison using the appropriate LLVM instructions for the types involved.
+3. **AST**: Extend the AST definition (`ast.ml`) to include a new constructor for let expressions. This constructor should take a list of pairs (identifier/expression) and an expression representing the scope of the identifiers. You may start with a single identifier declaration to pave the way for multiple declarations later.
 
-4. **Implement Short-Circuit Interpreter**: Modify the interpreter to support short-circuit evaluation for boolean expressions. This means that in expressions like `A && B`, if `A` is false, `B` should not be evaluated, and similarly for `A || B`.
+4. **Interpreter**: Implement the evaluation of let expressions in the interpreter module (`eval.ml`). This involves evaluating the expressions assigned to identifiers, updating the environment with these new bindings, and then evaluating the body of the let expression in this updated environment. Ensure that the environment is correctly managed to handle nested let expressions and scope. Take notice of the explanation in the slides of the course.
 
-5. **LLVM Code Generation for Short-Circuit Evaluation**: Finally, extend the compiler to generate LLVM code that implements short-circuit evaluation for boolean expressions. This will involve generating labelled basic blocks, conditional branches in the LLVM code, and phi nodes to join the result in the end. 
+5. **Type System**: Implement the type checking for let expressions in the type system module (`typing.ml`). This involves checking that expressions assigned to identifiers are well-typed and that the body of the let expression is also well-typed in the context of these declarations. The resulting type is the type of the expression body. You will need to manage a typing environment that maps identifiers to their types. Notice that the environment module `env.ml` provides a generic data structure that can be used for this purpose.
 
-### Hints
-
-#### To implement the type system with an annotated AST
-
-Analyse the file `typing.ml` to understand how to implement the type system. You will need to define a new type `ast` in the type system module (file `typing.ml`) to represent the output of the type system and later modify the input of the compiler to accept this typed AST.
-
-```ocaml
-type ann = { ty: calc_type }
-
-type ast = 
-    Num of ann * int
-  | Bool of ann * bool
-  
-  | Add of ann * ast * ast
-  ...
-```
-
-By defining the type `ann` for annotations, separately, you can easily modify the AST to include more meta information later. Now you need to adapt the type checking helper functions to return this new typed AST. For example, the helper function that checks operations on integers should look like this:
-
-```ocaml
-let type_int_int_int_bin_op mk e1 e2 = 
-  match type_of e1, type_of e2 with
-  | IntT, IntT -> mk IntT e1 e2
-  | _ -> mk (None "Expecting Integer") e1 e2
-```
-
-By using the high order `mk` function to replace the general form of producing the expression back. You can create a new AST node with the correct type annotation. The `mk` function can be instantiated by functions like:
-
-```ocaml
-let mk_add t e1 e2 = Add (t,e1,e2) 
-let mk_sub t e1 e2 = Sub (t,e1,e2) 
-...
-```
-
-You will need to implement similar functions for all binary and unary operations.
-
-```ocaml
-let rec typecheck e =
-  match e with  
-  | Ast.Num n -> Num n
-  | Ast.Bool b -> Bool b
-  | Ast.Add (e1,e2) -> type_int_int_int_bin_op mk_add (typecheck e1) (typecheck e2)
-  | Ast.Sub (e1,e2) -> type_int_int_int_bin_op mk_sub (typecheck e1) (typecheck e2)
-  ...
-```
-
-#### To implement the short-circuit evaluation in the interpreter
-
-The code that you need to produce to implement a short-circuit and expression like `A && B` is as follows:
-
-```shell
-A:
-  %B = ...                             ; B is the register that holds the value of A
-   br i1 %B, label %C, label %E
-
-C:
-  %D = ...                             ; D is the register that holds the value of B
-  br label %G
-
-E:
-  %F = phi i1 [ false, %A ], [ %D, %C ]
-  ...
-```
-
-The labels `A` to `H` represent fresh temporaries that need to be generated in this sequence.  The same pattern will be valid to implement the `A || B` expression. 
-
-For conditional expressions with two branches, like `if A then B else C`, the code that you need to produce is as follows:
-
-
-```ocaml
-  %A = ...                             ; A is the register that holds the condition result
-   br i1 %A, label %B, label %E
-
-B:
-  %C = ...                             ; C is the register that holds the result of the then branch
-  br label %G
-
-E:
-  %F = ...                             ; F is the register that holds the result of the else branch
-  br label %G
-
-G:
-  %H = phi i1 [ %C, %B ], [ %F, %E ]
-  ...
-```
+6. **LLVM Code Generation**: Extend the LLVM code generation module (`llvm.ml`) to handle let expressions. This involves generating LLVM code for the expressions assigned to identifiers, storing the results (registers or constants) in the environment, and then generating code for the body of the let expression using these results. An alternative is to use local variables to store the intermediate result. 
 
 ### Building the Project
 
