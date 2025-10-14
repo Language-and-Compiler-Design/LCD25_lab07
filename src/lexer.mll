@@ -27,6 +27,8 @@ rule read = parse
   | "false"                  { FALSE }
   | "&&"                     { AND }
   | "||"                     { OR }
-  | '='                      { EQ }
+  | "let"                    { LET }
+  | "in"                     { IN }
+  | ['a'-'z' 'A'-'Z']+ as id  { ID id (* This must be in the end to avoid conflicts with keywords *) }
   | eof                      { EOF }
   | _ as c                   { raise (Lexing_error (Printf.sprintf "Unexpected char: %c" c)) }
