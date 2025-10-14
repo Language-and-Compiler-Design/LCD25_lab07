@@ -28,6 +28,10 @@ type ast =
   | Or of ann * ast * ast
   | Not of ann * ast
 
+  | Let of ann * (string * ast) list * ast
+  | Id of ann * string
+
+
 let type_of = function
   | Num _ -> IntT
   | Bool _ -> BoolT
@@ -49,6 +53,10 @@ let type_of = function
   | Or (ann,_,_) -> ann
   | Not (ann,_) -> ann
 
+  | Let (ann,_,_) -> ann
+  | Id (ann,_) -> ann
+
+
 let mk_add t e1 e2 = Add (t,e1,e2) 
 let mk_sub t e1 e2 = Sub (t,e1,e2) 
 let mk_mul t e1 e2 = Mul (t,e1,e2) 
@@ -65,6 +73,7 @@ let mk_lt t e1 e2 = Lt (t,e1,e2)
 let mk_le t e1 e2 = Le (t,e1,e2)
 let mk_gt t e1 e2 = Gt (t,e1,e2)
 let mk_ge t e1 e2 = Ge (t,e1,e2)
+
 
 
 let unparse_type = function
@@ -97,18 +106,37 @@ let type_a_a_bool_eqop mk e1 e2 =
     then mk BoolT e1 e2 
     else mk (None "Expecting equal types") e1 e2
 
-let rec typecheck e =
+let rec typecheck_rec e env =
   match e with  
   | Ast.Num n -> Num n
   | Ast.Bool b -> Bool b
-  | Ast.Add (e1,e2) -> type_int_int_int_bin_op mk_add (typecheck e1) (typecheck e2)
-  | Ast.Sub (e1,e2) -> type_int_int_int_bin_op mk_sub (typecheck e1) (typecheck e2)
-  | Ast.Mul (e1,e2) -> type_int_int_int_bin_op mk_mul (typecheck e1) (typecheck e2)
-  | Ast.Div (e1,e2) -> type_int_int_int_bin_op mk_div (typecheck e1) (typecheck e2)
-  | Ast.Neg e1 ->  type_int_int_bin_op mk_neg (typecheck e1)
-  | Ast.And (e1,e2) -> type_bool_bool_bool_bin_op mk_and (typecheck e1) (typecheck e2)
-  | Ast.Or (e1,e2) -> type_bool_bool_bool_bin_op mk_or (typecheck e1) (typecheck e2)
-  | Ast.Eq (e1,e2) -> type_a_a_bool_eqop mk_eq (typecheck e1) (typecheck e2)
+  
+  | Ast.Add (e1,e2) -> type_int_int_int_bin_op mk_add (typecheck_rec e1 env) (typecheck_rec e2 env)
+  | Ast.Sub (e1,e2) -> type_int_int_int_bin_op mk_sub (typecheck_rec e1 env) (typecheck_rec e2 env)
+  | Ast.Mul (e1,e2) -> type_int_int_int_bin_op mk_mul (typecheck_rec e1 env) (typecheck_rec e2 env)
+  | Ast.Div (e1,e2) -> type_int_int_int_bin_op mk_div (typecheck_rec e1 env) (typecheck_rec e2 env)
+  | Ast.Neg e1 ->  type_int_int_bin_op mk_neg (typecheck_rec e1 env)
+  
+  | Ast.And (e1,e2) -> type_bool_bool_bool_bin_op mk_and (typecheck_rec e1 env) (typecheck_rec e2 env)
+  | Ast.Or (e1,e2) -> type_bool_bool_bool_bin_op mk_or (typecheck_rec e1 env) (typecheck_rec e2 env)
+  | Ast.Eq (e1,e2) -> type_a_a_bool_eqop mk_eq (typecheck_rec e1 env) (typecheck_rec e2 env)
+
+  | Ast.Id x -> 
+    let t = Env.lookup env x in
+    begin match t with
+    | None -> failwith ("Unbound identifier: "^x)
+    | Some t -> Id (t,x)
+    end
+
+  | Ast.Let (bindings, body) ->
+    let env' = Env.begin_scope env in
+    let env'', bindings' = List.fold_left (fun (env,acc) (x,e) ->
+      let e' = typecheck_rec e env in
+      let t = type_of e' in
+      Env.bind env x t, (x,e')::acc) (env',[]) bindings in
+    let body' = typecheck_rec body env'' in
+    Let(type_of body', List.rev bindings', body')
+
   | _ -> failwith "Typing not yet implemented..."
 
-
+let typecheck e = typecheck_rec e Env.empty_env

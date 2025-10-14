@@ -22,6 +22,11 @@ type ast =
   | Or of ast * ast
   | Not of ast
 
+  | Let of (string * ast) list * ast 
+  | Id of string
+
+
+
 let paren = fun p q s -> if p > q then "("^s^")" else s
 
 (* This function converts an AST back to a string representation of the expression *)
@@ -43,4 +48,8 @@ let rec unparse_ast p e =
   | Le (e1,e2) -> paren p 9 (unparse_ast 9 e1 ^ " <= " ^ unparse_ast 10 e2)
   | Gt (e1,e2) -> paren p 9 (unparse_ast 9 e1 ^ " > " ^ unparse_ast 10 e2)
   | Ge (e1,e2) -> paren p 9 (unparse_ast 9 e1 ^ " >= " ^ unparse_ast 10 e2) 
+  | Let (l,e2) -> 
+      let decls = String.concat " " (List.map (fun (x,e) -> x^" = "^unparse_ast 0 e) l) in
+      "let "^decls^" in "^unparse_ast 0 e2
+  | Id x -> x
 

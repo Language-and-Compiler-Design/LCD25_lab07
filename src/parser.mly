@@ -3,7 +3,8 @@ open Ast
 %}
 
 %token <int> INT
-%token PLUS MINUS TIMES DIV LPAREN RPAREN AND OR NOT EQ NEQ LT LE GT GE TRUE FALSE EOF
+%token <string> ID
+%token PLUS MINUS TIMES DIV LPAREN RPAREN AND OR NOT EQ NEQ LT LE GT GE TRUE FALSE LET IN EOF
 
 %start main
 %type <Ast.ast> main
@@ -13,7 +14,8 @@ main:
   expr EOF                { $1 }
 
 expr:
-  | disj                  { $1 }  
+  | LET ID EQ expr IN expr { Let([$2, $4], $6) }  
+  | disj                   { $1 }
 
 disj:
   | disj OR conj         { Or($1,$3)}
@@ -49,6 +51,5 @@ factor:
   | LPAREN expr RPAREN    { $2 }
   | MINUS factor          { Neg $2 }
   | NOT factor           { Not $2 }
-  | TRUE                  { Bool true }
-  | FALSE                 { Bool false }
+  | ID                    { Id $1 }
 ;
