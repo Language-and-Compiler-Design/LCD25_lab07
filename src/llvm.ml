@@ -39,11 +39,11 @@ let rec compile_llvm e label block =
     let bs = bs1@[(l1,b1@[BrI1 (r1, label_b, label_phi)])]@bs2@[(l2,b2@[BrLabel label_phi])] in
     let ret = new_reg () in
     (Register ret, label_phi, [PhiI1 (ret,[(r1, l1);(r2,l2)])], bs)
-  | Eq (t,e1,e2) ->
+  | Eq (_,e1,e2) ->
     let r1,l1,b1,bs1 = compile_llvm e1 label block in
     let r2,l2,b2,bs2 = compile_llvm e2 l1 b1 in
     let ret = new_reg() in 
-    (Register ret, l2, b2@[CmpEq (t,ret,r1,r2)], bs1@bs2) 
+    (Register ret, l2, b2@[CmpEq (type_of e1,ret,r1,r2)], bs1@bs2) 
     (* This is OK, try (true && true) = (true && true) *)
   | _ -> failwith "Compiling not yet implemented"
 
@@ -86,7 +86,7 @@ let unparse_llvm_i = function
       "  "^unparse_register r^" = icmp eq i32 "^unparse_result l1^", "^unparse_result l2
   | CmpEq (BoolT, r, l1, l2) -> 
     "  "^unparse_register r^" = icmp eq i1 "^unparse_result l1^", "^unparse_result l2
-  | CmpEq (t, r, l1, l2) -> failwith "Internal error: Cannot compare "^(unparse_type t)
+  | CmpEq (t, _, _, _) -> failwith "Internal error: Cannot compare "^(unparse_type t)
       
 let print_block (label, instructions) = 
     print_endline (unparse_label_declaration label);
