@@ -12,6 +12,8 @@ In this lab, you will extend the previous lab sessions' work on the compiler of 
 
 - `E1 := E2` to update the memory location referenced by expression `E1` with the value of expression `E2`. The result of this expression is the value assigned to the memory location.
 
+- `free(E)` to release the memory location referenced by expression `E`.
+
 - `if E1 then E2 else E3` to evaluate the boolean expression `E1`, and if it evaluates to `true`, evaluate and return the result of expression `E2`; otherwise, evaluate and return the result of expression `E3`.
 
 - `while E1 do E2` to repeatedly evaluate expression `E2` as long as the boolean expression `E1` evaluates to `true`.
@@ -21,6 +23,10 @@ In this lab, you will extend the previous lab sessions' work on the compiler of 
 - `printInt(E)` to print the integer value of expression `E` to the standard output.
 
 - `printBool(E)` to print the boolean value of expression `E` to the standard output.
+
+- `printEndLine()` to print a new line.
+
+Note that now we no longer need to print the result in the end of the compiled file or at the end of the interpreter call.
 
 Collect some files from this repository as reference. Your job is to implement declarations of identifiers in the style of let expressions. You need to implement the interpreter, the type systems, and the compiler to LLVM. Use the provided module `mem.ml` to manage memory locations in the interpreter, and the module `mem_runtime.c` to manage heap memory in the generated LLVM code.
 
@@ -34,9 +40,9 @@ Assuming that you have completed the previous labs, the following steps outline 
 
 3. **AST**: Extend the AST definition (`ast.ml`) to include the new constructors.
 
-4. **Interpreter**: Implement the evaluation of let expressions in the interpreter module (`eval.ml`). Use the functions in module `mem.ml` to allocate memory locations for the identifiers declared in the let expressions.
+4. **Type System**: Implement the type checking for let expressions in the type system module (`typing.ml`). Follow the rules presented in the lecture slides. Add the type `Unit` and value `unit`.
 
-5. **Type System**: Implement the type checking for let expressions in the type system module (`typing.ml`). Follow the rules presented in the lecture slides. 
+5. **Interpreter**: Implement the evaluation of let expressions in the interpreter module (`eval.ml`). Use the functions in module `mem.ml` to allocate memory locations for the identifiers declared in the let expressions.
 
 6. **LLVM Code Generation**: Extend the LLVM code generation module (`llvm.ml`) to handle imperative constructs expressions. This involves generating LLVM code that uses the functions in module `mem_runtime.c` and compiling the result together. 
 
