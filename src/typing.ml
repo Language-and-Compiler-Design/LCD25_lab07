@@ -135,6 +135,7 @@ let rec typecheck_rec e env =
       let t = type_of e' in
       Env.bind env x t, (x,e')::acc) (env',[]) bindings in
     let body' = typecheck_rec body env'' in
+    let _ = Env.end_scope env' in
     Let(type_of body', List.rev bindings', body')
 
   | _ -> failwith "Typing not yet implemented..."
