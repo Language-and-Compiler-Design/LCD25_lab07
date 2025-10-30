@@ -39,7 +39,7 @@ let rec compile_llvm e env label block =
     let bs = bs1@[(l1,b1@[BrI1 (r1, label_b, label_phi)])]@bs2@[(l2,b2@[BrLabel label_phi])] in
     let ret = new_reg () in
     (Register ret, label_phi, [PhiI1 (ret,[(r1, l1);(r2,l2)])], bs)
-  | Eq (t,e1,e2) ->
+  | Eq (_,e1,e2) ->
     let r1,l1,b1,bs1 = compile_llvm e1 env label block in
     let r2,l2,b2,bs2 = compile_llvm e2 env l1 b1 in
     let ret = new_reg() in 

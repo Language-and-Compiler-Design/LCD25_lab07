@@ -1,26 +1,44 @@
 # Language and Compiler Design - NOVA FCT 2025
 
-## Lab 5 – `CALCI`, a language with identifier declarations
+## Lab 7 – `CALCRef`, a language with heap allocated memory locations
 
-This repository contains the starter code for **Lab 5** of the course **Language and Compiler Design**.  
+This repository contains the starter code for **Lab 7** of the course **Language and Compiler Design**.  
 
-In this lab, you will extend the previous lab sessions' work on the compiler of `CALCB` language with short-circuit operations. Your job is to implement declarations of identifiers in the style of let expressions. You need to implement the interpreter, the type systems, and the compiler to LLVM. Use the provided environment module `env.ml` to manage the identifiers and their relations to values (interpreter), types (type checker), and LLVM results (compiler).
+In this lab, you will extend the previous lab sessions' work on the compiler of `CALCRef` language with heap allocated memory locations. This starting point does not yet have let implemented in all its aspects. Please modify your own ongoing project from Lab 3, 4 or 5 with the following new features. 
+
+- `new(E)` to allocate a new memory location in the heap and initialize it with the value of expression `E`. The result of `new(E)` is a reference to the allocated memory location.
+
+- `!E` to access the value stored in the memory location referenced by expression `E`.
+
+- `E1 := E2` to update the memory location referenced by expression `E1` with the value of expression `E2`. The result of this expression is the value assigned to the memory location.
+
+- `if E1 then E2 else E3` to evaluate the boolean expression `E1`, and if it evaluates to `true`, evaluate and return the result of expression `E2`; otherwise, evaluate and return the result of expression `E3`.
+
+- `while E1 do E2` to repeatedly evaluate expression `E2` as long as the boolean expression `E1` evaluates to `true`.
+
+- `E1; E2` to evaluate expression `E1`, discard its result, and then evaluate and return the result of expression `E2`.
+
+- `printInt(E)` to print the integer value of expression `E` to the standard output.
+
+- `printBool(E)` to print the boolean value of expression `E` to the standard output.
+
+Collect some files from this repository as reference. Your job is to implement declarations of identifiers in the style of let expressions. You need to implement the interpreter, the type systems, and the compiler to LLVM. Use the provided module `mem.ml` to manage memory locations in the interpreter, and the module `mem_lib.c` to manage heap memory in the generated LLVM code.
 
 ### Action points
 
 Assuming that you have completed the previous labs, the following steps outline the tasks you need to accomplish in this lab:
 
-1. **Lexer**: Modify the lexer (`lexer.mll`) to recognize identifiers (sequences of letters) and the keywords `let` and `in`. You will also need to add reuse the token for the equality operator `=`. Take care to place the identifier rule at the end of the rules to avoid conflicts with keywords.
+1. **Lexer**: Modify the lexer (`lexer.mll`) to recognize the new constructs for memory allocation, memory access, and memory release. You will need to add tokens for `new`, `!`, and `:=`. Add also the keywords and symbols required for the imperative constructs `;` (sequence), `if`, `then`, `else`, `while`, and `do`. Add operation `printInt` and `printBool` as well.
 
-2. **Parser**: Update the parser (`parser.mly`) to handle let expressions of the form `let ID = expr in expr`. Ensure that the parser correctly constructs the AST for these expressions. Let expressions have the lowest precedence and are right associative, which means that they should be placed at the top level of the precedence hierarchy.
+2. **Parser**: Update the parser (`parser.mly`) to handle the new expressions Ensure that the parser correctly constructs the AST for these expressions. The sequence, conditionals and `while` expressions have similar precedence as `let` expressions. Assignments have higher than let expressions but have a lower precedence when compared with the other existing operations. Sequences are left associative, Assignments and all the others are right associative.
 
-3. **AST**: Extend the AST definition (`ast.ml`) to include a new constructor for let expressions. This constructor should take a list of pairs (identifier/expression) and an expression representing the scope of the identifiers. You may start with a single identifier declaration to pave the way for multiple declarations later.
+3. **AST**: Extend the AST definition (`ast.ml`) to include the new constructors.
 
-4. **Interpreter**: Implement the evaluation of let expressions in the interpreter module (`eval.ml`). This involves evaluating the expressions assigned to identifiers, updating the environment with these new bindings, and then evaluating the body of the let expression in this updated environment. Ensure that the environment is correctly managed to handle nested let expressions and scope. Take notice of the explanation in the slides of the course.
+4. **Interpreter**: Implement the evaluation of let expressions in the interpreter module (`eval.ml`). Use the functions in module `mem.ml` to allocate memory locations for the identifiers declared in the let expressions.
 
-5. **Type System**: Implement the type checking for let expressions in the type system module (`typing.ml`). This involves checking that expressions assigned to identifiers are well-typed and that the body of the let expression is also well-typed in the context of these declarations. The resulting type is the type of the expression body. You will need to manage a typing environment that maps identifiers to their types. Notice that the environment module `env.ml` provides a generic data structure that can be used for this purpose.
+5. **Type System**: Implement the type checking for let expressions in the type system module (`typing.ml`). Follow the rules presented in the lecture slides. 
 
-6. **LLVM Code Generation**: Extend the LLVM code generation module (`llvm.ml`) to handle let expressions. This involves generating LLVM code for the expressions assigned to identifiers, storing the results (registers or constants) in the environment, and then generating code for the body of the let expression using these results. An alternative is to use local variables to store the intermediate result. 
+6. **LLVM Code Generation**: Extend the LLVM code generation module (`llvm.ml`) to handle imperative constructs expressions. This involves generating LLVM code that uses the functions in module `mem_lib.c` and compiling the result together. 
 
 ### Building the Project
 
@@ -57,7 +75,7 @@ define i32 @main() #0 {
 declare i32 @printf(ptr noundef, ...) #1
 ```
 
-This output should be placed in a file with the extension `ll` and compiled using `clang`
+This output should be placed in a file with the extension `ll` and compiled using `clang`. When using Unic, from the command line, you can redirect the output to a file using a `>` operator.
 
 ```bash
 clang -o a a.ll
