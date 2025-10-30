@@ -22,7 +22,7 @@ In this lab, you will extend the previous lab sessions' work on the compiler of 
 
 - `printBool(E)` to print the boolean value of expression `E` to the standard output.
 
-Collect some files from this repository as reference. Your job is to implement declarations of identifiers in the style of let expressions. You need to implement the interpreter, the type systems, and the compiler to LLVM. Use the provided module `mem.ml` to manage memory locations in the interpreter, and the module `mem_lib.c` to manage heap memory in the generated LLVM code.
+Collect some files from this repository as reference. Your job is to implement declarations of identifiers in the style of let expressions. You need to implement the interpreter, the type systems, and the compiler to LLVM. Use the provided module `mem.ml` to manage memory locations in the interpreter, and the module `mem_runtime.c` to manage heap memory in the generated LLVM code.
 
 ### Action points
 
@@ -38,7 +38,7 @@ Assuming that you have completed the previous labs, the following steps outline 
 
 5. **Type System**: Implement the type checking for let expressions in the type system module (`typing.ml`). Follow the rules presented in the lecture slides. 
 
-6. **LLVM Code Generation**: Extend the LLVM code generation module (`llvm.ml`) to handle imperative constructs expressions. This involves generating LLVM code that uses the functions in module `mem_lib.c` and compiling the result together. 
+6. **LLVM Code Generation**: Extend the LLVM code generation module (`llvm.ml`) to handle imperative constructs expressions. This involves generating LLVM code that uses the functions in module `mem_runtime.c` and compiling the result together. 
 
 ### Building the Project
 
